@@ -83,7 +83,9 @@ jobs:
     needs: [unit-testing, code-coverage]
     runs-on: ubuntu-latest
     steps: 
-      - name: checkoing out
+      - name: checking out
+        uses: actions/checkout@v4
+      - name: docker login 
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
