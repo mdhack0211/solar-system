@@ -21,6 +21,7 @@ jobs:
           - nodejsversion: 18
             os: macos-latest
 
+    name: unit-testing
     services: 
       mongo-db: 
         image: mdhack/mongo-db:non-prod
@@ -31,7 +32,7 @@ jobs:
        MONGO_URI: 'mongodb://localhost:27017/superData'
        MONGO_USERNAME:  non-prod-username
        MONGO_PASSWORD:  non-prod-password
-    name: nodejs unit testing
+    #name: nodejs unit testing
     runs-on: ${{ matrix.os }}
     steps: 
       - name: checkout repo 
@@ -140,4 +141,3 @@ jobs:
           context: .
           tags:  ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
           push: true
-
