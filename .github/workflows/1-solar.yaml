@@ -4,7 +4,7 @@ on:
   push: 
     branches: 
       - main
-
+      - feature/*
 
 env: 
   MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
@@ -13,14 +13,66 @@ env:
 
 jobs: 
   unit-testing: 
+    strategy: 
+      matrix:
+        nodejsversion: [18, 19, 20]
+        os: [ubuntu-latest, macos-latest ]
+        exclude: 
+          - nodejsversion: 18
+            os: macos-latest
     name: nodejs unit testing
+    runs-on: ${{ matrix.os }}
+    steps: 
+      - name: checkout repo 
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4 
+        with:
+          node-version: ${{ matrix.nodejsversion }}
+
+      - name: Saving Cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+
+      - name: install dependencies
+        run: npm install 
+         
+      - name: testing npm 
+        run: npm test
+         
+      - name: Saving the test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: 
+          name: numberwise-${{ matrix.nodejsversion }}-onn-${{ matrix.os }}
+          path: test-results.xml
+
+
+  code-coverage: 
     runs-on: ubuntu-latest
     steps: 
       - name: checkout repo 
         uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4 
         with:
           node-version: 18
-      - name: install dependencies m
+
+      - name: Saving Cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      - name: install dependencies
         run: npm install 
-      - run: npm test
+      - name: Run code coverage
+        continue-on-error: true
+        run: npm run coverage
+      - name: saving coverage artifact 
+        uses: actions/upload-artifact@v4
+        with: 
+          name: Coverage results
+          path: coverage
+          retention-days: 3
