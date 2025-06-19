@@ -165,3 +165,15 @@ jobs:
         run: |
               kubectl version 
               kubectl get nodes  
+
+      - name: replaceing some token 
+        uses: cschleiden/replace-tokens@v1
+        with: 
+          tokenPrefix: '_{_'
+          tokenSuffix: '_}_'
+          files: '["kubernetes/development/*.yaml"]'
+          env:
+            NAMESPACE: ${{ vars.NAMESPACE }}
+            REPLICAS: ${{ vars.REPLICAS }}
+            IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha}}
+            
