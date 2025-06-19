@@ -196,7 +196,6 @@ jobs:
       - name: retriving the url of service with nodeport
         id: myservice
         run: | 
-          #echo "ACTUAL_URL=$(curl -s ifconfig.me ):$(kubectl get svc  solar-system -n default -o jsonpath='{.spec.ports[0].nodePort}')" >>  $GITHUB_OUTPUT
           echo "PORT=$(kubectl get svc  solar-system -n development  -o jsonpath='{.spec.ports[0].nodePort}')"  >> $GITHUB_OUTPUT
 
   integration-testing:
@@ -208,5 +207,5 @@ jobs:
         env:
           MAYANK: ${{ needs.dev_deploy.outputs.PORT }}
         run: | 
-          echo $URL
+          #echo $URL
           curl  http://3.136.148.224:$MAYANK/live  -s -k  | grep -i live 
