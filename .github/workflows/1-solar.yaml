@@ -28,15 +28,27 @@ jobs:
       - uses: actions/setup-node@v4 
         with:
           node-version: ${{ matrix.nodejsversion }}
+          
+      - name: Saving Cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+
       - name: install dependencies
         run: npm install 
-      - run: npm test
+         
+      - name: testing npm 
+        run: npm test
+         
       - name: Saving the test results
         if: always()
         uses: actions/upload-artifact@v4
         with: 
           name: numberwise-${{ matrix.nodejsversion }}-onn-${{ matrix.os }}
           path: test-results.xml
+
 
   code-coverage: 
     runs-on: ubuntu-latest
@@ -46,6 +58,13 @@ jobs:
       - uses: actions/setup-node@v4 
         with:
           node-version: 18
+
+      - name: Saving Cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }
+
       - name: install dependencies
         run: npm install 
       - name: Run code coverage
