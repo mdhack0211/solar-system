@@ -180,3 +180,21 @@ jobs:
       - name: printing yaml 
         run: | 
                cat kubernetes/development/*.yaml
+
+      - name: Creating A secret becuase pod needs it 
+        continue-on-error: true
+        run: | 
+          kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
+          --from-literal=MONGO_URI=${{ env.MONGO_URI }} \
+          --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
+          --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} 
+
+      - name: Deploying app 
+        run: |
+          kubectl apply -f kubernetes/development/
+    
+      - name: retriving the url of service with nodeport
+        id: myservice
+        run: | 
+          #echo "ACTUAL_URL=$(curl -s ifconfig.me ):$(kubectl get svc  solar-system -n default -o jsonpath='{.spec.ports[0].nodePort}')" >>  $GITHUB_OUTPUT
+          echo "PORT=$(kubectl get svc  solar-system -n development  -o jsonpath='{.spec.ports[0].nodePort}')"  >> $GITHUB_OUTPUT
