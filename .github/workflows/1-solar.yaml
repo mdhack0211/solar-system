@@ -176,3 +176,7 @@ jobs:
           NAMESPACE: ${{ vars.NAMESPACE }}
           REPLICAS: ${{ vars.REPLICAS }}
           IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha}}
+
+      - name: printing yaml 
+        run: | 
+               cat kubernetes/development/*.yaml
