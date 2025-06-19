@@ -198,3 +198,15 @@ jobs:
         run: | 
           #echo "ACTUAL_URL=$(curl -s ifconfig.me ):$(kubectl get svc  solar-system -n default -o jsonpath='{.spec.ports[0].nodePort}')" >>  $GITHUB_OUTPUT
           echo "PORT=$(kubectl get svc  solar-system -n development  -o jsonpath='{.spec.ports[0].nodePort}')"  >> $GITHUB_OUTPUT
+
+  integration-testing:
+    name: Dev Integration Testing
+    needs: dev_deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test URL
+        env:
+          MAYANK: ${{ needs.dev_deploy.outputs.PORT }}
+        run: | 
+          echo $URL
+          curl  http://3.136.148.224:$MAYANK/live  -s -k  | grep -i live 
