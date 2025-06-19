@@ -75,4 +75,4 @@ jobs:
         with: 
           name: Coverage results
           path: coverage
-          retention-days: 2
+          retention-days: 3
