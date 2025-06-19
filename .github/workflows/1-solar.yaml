@@ -144,6 +144,11 @@ jobs:
 
   dev_deploy: 
     needs: docker
+    outputs: 
+      PORT: ${{ steps.myservice.outputs.PORT}}
+    environment: 
+      name: development
+      url: http://3.136.148.224:${{ steps.myservice.outputs.PORT}}
     runs-on: ubuntu-latest
     steps: 
       - name: checkout repo 
@@ -204,7 +209,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test URL
-        # env:
-        #   MAYANK: ${{ needs.dev_deploy.outputs.PORT }}
+        env:
+          MAYANK: ${{ needs.dev_deploy.outputs.PORT }}
         run: | 
-          curl  http://3.136.148.224:30900/live  -s -k  | grep -i live 
+          curl  http://3.136.148.224:$MAYANK/live  -s -k  | grep -i live 
