@@ -145,64 +145,15 @@ jobs:
   dev_deploy: 
     if: contains(github.ref, 'feature/')
     needs: docker
-    outputs: 
-      PORT: ${{ steps.myservice.outputs.PORT}}
-    environment: 
-      name: development
-      url: http://3.136.148.224:${{ steps.myservice.outputs.PORT}}
-    runs-on: ubuntu-latest
-    steps: 
-      - name: checkout repo 
-        uses: actions/checkout@v4
-
-      - name: using kubectl action 
-        uses:  azure/setup-kubectl@v4
-        with:
-          version: 'v1.30.0'
-
-      - name: login using kubeconfieg files 
-        uses: azure/k8s-set-context@v4
-        with:
-          method: kubeconfig
-          kubeconfig: "${{ secrets.KUBECONFIG }}"
-          context: kubernetes-admin@kubernetes
-
-      - name: runnnig kubectl commands
-        run: |
-              kubectl version 
-              kubectl get nodes  
-
-      - name: replaceing some token 
-        uses: cschleiden/replace-tokens@v1
-        with: 
-          tokenPrefix: '_{_'
-          tokenSuffix: '_}_'
-          files: '["kubernetes/development/*.yaml"]'
-        env:
-          NAMESPACE: ${{ vars.NAMESPACE }}
-          REPLICAS: ${{ vars.REPLICAS }}
-          IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha}}
-
-      - name: printing yaml 
-        run: | 
-               cat kubernetes/development/*.yaml
-
-      - name: Creating A secret becuase pod needs it 
-        continue-on-error: true
-        run: | 
-          kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
-          --from-literal=MONGO_URI=${{ env.MONGO_URI }} \
-          --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
-          --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} 
-
-      - name: Deploying app 
-        run: |
-          kubectl apply -f kubernetes/development/
+    uses: ./.github/workflows/reuse-dep.yaml
+    secrets: 
+      k8s-kubeconfig:  ${{ secrets.KUBECONFIG }}
+      mongo-pass: ${{ secrets.MONGO_PASSWORD }}
+    with: 
+      mongo-uri: ${{ vars.MONGO_URI }}
+      environment: development
+      k8s-manifest-dir: kubernetes/development/
     
-      - name: retriving the url of service with nodeport
-        id: myservice
-        run: | 
-          echo "PORT=$(kubectl get svc  solar-system -n development  -o jsonpath='{.spec.ports[0].nodePort}')"  >> $GITHUB_OUTPUT
 
   integration-testing:
     if: contains(github.ref, 'feature/')
@@ -212,7 +163,7 @@ jobs:
     steps:
       - name: Test URL Mayank
         env:
-          MAYANK: ${{ needs.dev_deploy.outputs.PORT }}
+          MAYANK: ${{ needs.dev_deploy.outputs.application-url }}
         run: | 
           curl  http://3.136.148.224:$MAYANK/live  -s -k  | grep -i live 
 
@@ -220,64 +171,15 @@ jobs:
   prod_deploy: 
     if:  github.ref ==  'refs/heads/main'
     needs: docker
-    outputs: 
-      PORTA: ${{ steps.myservice.outputs.PORT}}
-    environment: 
-      name: production 
-      url: http://3.136.148.224:${{ steps.myservice.outputs.PORT}}
-    runs-on: ubuntu-latest
-    steps: 
-      - name: checkout repo 
-        uses: actions/checkout@v4
-
-      - name: using kubectl action 
-        uses:  azure/setup-kubectl@v4
-        with:
-          version: 'v1.30.0'
-
-      - name: login using kubeconfieg files 
-        uses: azure/k8s-set-context@v4
-        with:
-          method: kubeconfig
-          kubeconfig: "${{ secrets.KUBECONFIG }}"
-          context: kubernetes-admin@kubernetes
-
-      - name: runnnig kubectl commands
-        run: |
-              kubectl version 
-              kubectl get nodes  
-
-      - name: replaceing some token 
-        uses: cschleiden/replace-tokens@v1
-        with: 
-          tokenPrefix: '_{_'
-          tokenSuffix: '_}_'
-          files: '["kubernetes/production/*.yaml"]'
-        env:
-          NAMESPACE: ${{ vars.NAMESPACE }}
-          REPLICAS: ${{ vars.REPLICAS }}
-          IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha}}
-
-      - name: printing yaml 
-        run: | 
-               cat kubernetes/production/*.yaml
-
-      - name: Creating A secret becuase pod needs it 
-        continue-on-error: true
-        run: | 
-          kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
-          --from-literal=MONGO_URI=${{ env.MONGO_URI }} \
-          --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
-          --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} 
-
-      - name: Deploying app 
-        run: |
-          kubectl apply -f kubernetes/production/
+    uses: ./.github/workflows/reuse-dep.yaml
+    secrets: 
+      k8s-kubeconfig:  ${{ secrets.KUBECONFIG }}
+      mongo-pass: ${{ secrets.MONGO_PASSWORD }}
+    with: 
+      mongo-uri: ${{ vars.MONGO_URI }}
+      environment: production 
+      k8s-manifest-dir: kubernetes/production/
     
-      - name: retriving the url of service with nodeport
-        id: myservice
-        run: | 
-          echo "PORTA=$(kubectl get svc  solar-system -n prod  -o jsonpath='{.spec.ports[0].nodePort}')"  >> $GITHUB_OUTPUT
 
   prod-integration-testing:
     if:  github.ref ==  'refs/heads/main'
@@ -287,6 +189,6 @@ jobs:
     steps:
       - name: Test URL Mayank
         env:
-          MAYANKA: ${{ needs.prod_deploy.outputs.PORTA }}
+          MAYANKA: ${{ needs.prod_deploy.outputs.application-url }}
         run: | 
           curl  http://3.136.148.224:$MAYANKA/live  -s -k  | grep -i live
