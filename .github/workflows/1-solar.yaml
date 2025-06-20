@@ -41,7 +41,7 @@ jobs:
           node-version: ${{ matrix.nodejsversion }}
 
       - name: using my own custom action 
-        uses: ./.github/workflows/custom-actions/npm-action/action.yaml
+        uses: ./.github/workflows/custom-actions/npm-action/
         with: 
           path-of-folder: node_modules
 
