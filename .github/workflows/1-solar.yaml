@@ -218,7 +218,7 @@ jobs:
 
 
   prod_deploy: 
-    if:  github.ref ==  'refs/head/main'
+    if:  github.ref ==  'refs/heads/main'
     needs: docker
     outputs: 
       PORT: ${{ steps.myservice.outputs.PORT}}
@@ -280,7 +280,7 @@ jobs:
           echo "PORT=$(kubectl get svc  solar-system -n prod  -o jsonpath='{.spec.ports[0].nodePort}')"  >> $GITHUB_OUTPUT
 
   prod-integration-testing:
-    if:  github.ref ==  'refs/head/main'
+    if:  github.ref ==  'refs/heads/main'
     name: Prod Integration Testing
     needs: prod_deploy 
     runs-on: ubuntu-latest
