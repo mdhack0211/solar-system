@@ -281,7 +281,7 @@ jobs:
 
   prod-integration-testing:
     if:  github.ref ==  'refs/head/main'
-    name: Dev Integration Testing
+    name: Prod Integration Testing
     needs: prod_deploy 
     runs-on: ubuntu-latest
     steps:
